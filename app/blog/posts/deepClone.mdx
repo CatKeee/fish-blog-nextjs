@@ -1,0 +1,237 @@
+---
+title: "你写的深度克隆真的“深度”吗？"
+publishedAt: "2024-07-10"
+summary: ""
+---
+
+> 深度克隆是前端开发中无法避免的话题，几乎每个前端开发者都遇到过这个话题，那我们就来看看你写的深度克隆真的正确吗？
+
+#### 大家先看下面这段代码：
+
+```ts
+/**
+ * 我是最强的深度克隆
+ */
+const deepClone = (obj: any) => {
+  return JSON.parse(JSON.stringify(obj));
+};
+```
+
+平时开发中用这个方法或者过去用过这个方法去“深度克隆”的同学请举手 🙋，我相信应该不在少数。也不是说这个方法是错的，它其实在绝大多数场景都能用，但是在一些复杂场景就会有问题，比如下面这几个常见的场景：
+
+1. 传入的克隆对象中包含循环、递归引用；
+2. 传入的克隆对象中包含不可序列化的数据类型，比如：
+
+- undefined：会被丢弃；
+- function：会被丢弃；
+- Symbol：会被丢弃；
+- Date：会被转换为字符串；
+- RegExp：会被转换为空对象；
+- Map 和 Set：会被转换为空对象；
+- BigInt：会抛出 TypeError，因为 JSON 不支持 BigInt 类型；
+
+3. 传入的克隆对象中包含不可枚举的属性；
+4. ……
+
+所以，我们秉承着一个顶级的前端开发者 😏 的职业素养，肯定是不能让自己的代码出现 bug，并且为了更好的理解其原理，我们自己来手写一个通用性非常强的深度克隆函数。
+
+#### 前言
+
+这里是写给新入门的前端开发同学看的，前端大佬自觉跳过。
+首先我们要明白一个问题，那就是** 什么是深度克隆？为什么要去进行深度克隆？ **下面我来一一解答。
+
+** 什么是深度克隆？ **
+
+笼统的讲就是拷贝一个对象以及他嵌套的所有子对象、数组和属性然后形成一个完全独立（和原对象没半毛钱关系）的副本，你对这个副本进行修改都不会影响到原对象的数据，这就叫做深度克隆。
+
+** 为什么要去进行深度克隆？ **
+
+1. 因为在 JavaScript 中，对象和数组是通过** 引用 **传递的。如果直接复制对象的引用，两个变量将指向同一个内存地址，修改其中一个对象将会影响另一个对象。深度克隆可以创建一个完全独立的副本，从而防止这种意外修改。
+
+#### 正片开始
+
+```ts
+/**
+ * 深度克隆
+ * @param obj 克隆对象
+ * @param hash 哈希缓存
+ * @returns 克隆结果
+ */
+const deepClone = <T>(obj: T, hash = new WeakMap()): T => {
+  // 首先，我们需要判断接受的克隆对象是不是符合格式要求，不符合直接打回去
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  // 处理循环引用
+  if (hash.has(obj)) {
+    return hash.get(obj);
+  }
+
+  // 对于 Date 和 RegExp 对象，通过各自的构造函数创建新的实例
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as T;
+  }
+
+  if (obj instanceof RegExp) {
+    return new RegExp(obj.source, obj.flags) as T;
+  }
+
+  // 对于 Map 和 Set，递归克隆其元素
+  if (obj instanceof Map) {
+    const mapCopy = new Map();
+    hash.set(obj, mapCopy);
+    obj.forEach((value, key) => {
+      mapCopy.set(key, deepClone(value, hash));
+    });
+    return mapCopy as T;
+  }
+
+  if (obj instanceof Set) {
+    const setCopy = new Set();
+    hash.set(obj, setCopy);
+    obj.forEach((value) => {
+      setCopy.add(deepClone(value, hash));
+    });
+    return setCopy as T;
+  }
+
+  // 对于 ArrayBuffer 和 TypedArray，创建新的实例并复制其内容
+  if (obj instanceof ArrayBuffer) {
+    return obj.slice(0) as T;
+  }
+
+  if (ArrayBuffer.isView(obj)) {
+    return new (obj.constructor as any)(obj) as T;
+  }
+
+  // 对于 Symbol，通过 Symbol.prototype.valueOf 方法获取其原始值
+  if (typeof obj === "symbol") {
+    return Object(Symbol.prototype.valueOf.call(obj)) as T;
+  }
+
+  // 处理普通对象和数组，先判断是数组还是对象
+  const objCopy = Array.isArray(obj)
+    ? []
+    : Object.create(Object.getPrototypeOf(obj));
+  // 然后使用 WeakMap 跟踪已克隆的对象，避免处理循环引用时进入死循环
+  hash.set(obj, objCopy);
+  // 使用 Reflect.ownKeys 获取对象的所有属性（包括不可枚举属性和 Symbol 属性）
+  // 最后再对于每个属性，递归调用 deepClone 方法
+  Reflect.ownKeys(obj).forEach((key) => {
+    (objCopy as any)[key] = deepClone((obj as any)[key], hash);
+  });
+
+  // 返回结果，完美～
+  return objCopy as T;
+};
+```
+
+写完之后，我们测试一下
+
+```ts
+// 测试示例
+const obj = {
+  a: 1,
+  b: { c: 2 },
+  d: new Date(),
+  e: /regex/gi,
+  f: new Map([[1, "one"]]),
+  g: new Set([1, 2, 3]),
+  h: new Uint8Array([1, 2, 3]),
+  i: Symbol("sym"),
+  j: null,
+  k: undefined,
+  l: function () {
+    console.log("hello");
+  },
+  m: [1, 2, { n: 3 }],
+};
+
+const result = deepClone(obj);
+console.log("result", result);
+```
+
+使用 `ts-node` 运行一下看看：
+
+![deepClone.png][1]
+
+OK，完美克隆，下面将繁杂的注释语句去掉，复制到自己代码里去食用吧～
+
+```ts
+/**
+ * 深度克隆
+ * @param obj 克隆对象
+ * @param hash 哈希缓存
+ * @returns 克隆结果
+ */
+const deepClone = <T>(obj: T, hash = new WeakMap()): T => {
+  // 处理 null 或非对象
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  // 处理循环引用
+  if (hash.has(obj)) {
+    return hash.get(obj);
+  }
+
+  // 处理 Date
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as T;
+  }
+
+  // 处理 RegExp
+  if (obj instanceof RegExp) {
+    return new RegExp(obj.source, obj.flags) as T;
+  }
+
+  // 处理 Map
+  if (obj instanceof Map) {
+    const mapCopy = new Map();
+    hash.set(obj, mapCopy);
+    obj.forEach((value, key) => {
+      mapCopy.set(key, deepClone(value, hash));
+    });
+    return mapCopy as T;
+  }
+
+  // 处理 Set
+  if (obj instanceof Set) {
+    const setCopy = new Set();
+    hash.set(obj, setCopy);
+    obj.forEach((value) => {
+      setCopy.add(deepClone(value, hash));
+    });
+    return setCopy as T;
+  }
+
+  // 处理 ArrayBuffer
+  if (obj instanceof ArrayBuffer) {
+    return obj.slice(0) as T;
+  }
+
+  // 处理 TypedArray
+  if (ArrayBuffer.isView(obj)) {
+    return new (obj.constructor as any)(obj) as T;
+  }
+
+  // 处理 Symbol
+  if (typeof obj === "symbol") {
+    return Object(Symbol.prototype.valueOf.call(obj)) as T;
+  }
+
+  // 处理普通对象和数组
+  const objCopy = Array.isArray(obj)
+    ? []
+    : Object.create(Object.getPrototypeOf(obj));
+  hash.set(obj, objCopy);
+  Reflect.ownKeys(obj).forEach((key) => {
+    (objCopy as any)[key] = deepClone((obj as any)[key], hash);
+  });
+
+  return objCopy as T;
+};
+```
+
+[1]: https://www.zowlsat.com/usr/uploads/2024/06/819015904.png
