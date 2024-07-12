@@ -34,7 +34,7 @@ export default function Page() {
           <a
             href={project.url}
             target="_blank"
-            className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
+            className="bg-slate-50 dark:bg-zinc-800 rounded-xl p-4 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors">
             <p className="flex items-center justify-start flex-col gap-4">
               <div className="w-full flex items-center gap-4">
                 <img
@@ -44,7 +44,9 @@ export default function Page() {
                 />
                 <span className="font-bold text-lg">{project.name}</span>
               </div>
-              <p className="w-full text-gray-600">{project.description}</p>
+              <p className="w-full text-gray-600 dark:text-gray-200">
+                {project.description}
+              </p>
             </p>
           </a>
         ))}

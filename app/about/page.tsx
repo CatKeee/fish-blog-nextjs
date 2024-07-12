@@ -10,7 +10,7 @@ export default function Page() {
     <section>
       <h1 className="font-semibold text-2xl mb-8 tracking-normal">About</h1>
 
-      <div className="bg-slate-50 rounded-xl  p-8">
+      <div className="bg-slate-50 dark:bg-zinc-800 rounded-xl  p-8">
         <p className="flex justify-center items-center flex-col gap-4">
           <img
             className="w-20 h-20 rounded-full"

@@ -26,7 +26,7 @@ export default function Page() {
       <h1 className="font-semibold text-2xl mb-8 tracking-normal">
         My Friends
       </h1>
-      <p className="grid grid-cols-4 bg-slate-50 rounded-xl py-8 px-4 gap-y-8">
+      <p className="grid grid-cols-4 bg-slate-50 dark:bg-zinc-800 rounded-xl py-8 px-4 gap-y-8">
         {friends.map((friend) => (
           <a
             href={friend.url}
@@ -37,7 +37,7 @@ export default function Page() {
               src={friend.avatar}
               alt=""
             />
-            <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-gray-700 group-hover:text-sm group-hover:-translate-y-10 duration-700">
+            <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-gray-700 dark:group-hover:text-gray-50 group-hover:text-sm group-hover:-translate-y-10 duration-700">
               {friend.name}
             </span>
           </a>
