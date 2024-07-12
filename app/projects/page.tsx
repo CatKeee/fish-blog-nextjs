@@ -35,7 +35,7 @@ export default function Page() {
             href={project.url}
             target="_blank"
             className="bg-slate-50 dark:bg-zinc-800 rounded-xl p-4 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors">
-            <p className="flex items-center justify-start flex-col gap-4">
+            <div className="flex items-center justify-start flex-col gap-4">
               <div className="w-full flex items-center gap-4">
                 <img
                   className="w-14 h-14 rounded-full"
@@ -47,7 +47,7 @@ export default function Page() {
               <p className="w-full text-gray-600 dark:text-gray-200">
                 {project.description}
               </p>
-            </p>
+            </div>
           </a>
         ))}
       </div>

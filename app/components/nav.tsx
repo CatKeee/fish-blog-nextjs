@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ModeToggle } from "./../components/mode-toggle";
+import { SignIn } from "./github-signin";
 
 const navItems = {
   "/": {
@@ -47,7 +48,8 @@ export function Navbar() {
               );
             })}
           </div>
-          <div className="flex items-center h-full">
+          <div className="flex gap-2 items-center h-full">
+            <SignIn />
             <ModeToggle />
           </div>
         </nav>
