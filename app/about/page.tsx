@@ -11,7 +11,7 @@ export default function Page() {
       <h1 className="font-semibold text-2xl mb-8 tracking-normal">About</h1>
 
       <div className="bg-slate-50 dark:bg-zinc-800 rounded-xl  p-8">
-        <p className="flex justify-center items-center flex-col gap-4">
+        <div className="flex justify-center items-center flex-col gap-4">
           <img
             className="w-20 h-20 rounded-full"
             src="/images/avatar.jpg"
@@ -19,7 +19,7 @@ export default function Page() {
           />
           <span className="font-bold text-lg">JXDN</span>
           <p>An exceptional full-stack engineer🥷.</p>
-        </p>
+        </div>
       </div>
     </section>
   );
